@@ -2,7 +2,7 @@
  * @Author: panghu tompanghu@gmail.com
  * @Date: 2024-04-29 15:53:30
  * @LastEditors: panghu tompanghu@gmail.com
- * @LastEditTime: 2024-04-29 15:58:27
+ * @LastEditTime: 2024-04-29 16:03:55
  * @FilePath: /speak/lib/router/index.dart
  * @Description: 路由配置
  */
@@ -14,15 +14,15 @@ import 'package:speak/page/home/index.dart';
 final router = GoRouter(
   routes: [
     GoRoute(
-      path: '/home',
+      path: '/',
       builder: (BuildContext context, GoRouterState state) {
-        return const Home();
+        return const Index();
       },
     ),
     GoRoute(
-      path: '/index',
+      path: '/home',
       builder: (BuildContext context, GoRouterState state) {
-        return const Index();
+        return const Home();
       },
     )
   ],
