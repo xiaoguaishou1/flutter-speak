@@ -2,7 +2,7 @@
  * @Author: panghu tompanghu@gmail.com
  * @Date: 2024-04-29 15:53:30
  * @LastEditors: panghu tompanghu@gmail.com
- * @LastEditTime: 2024-04-29 16:03:55
+ * @LastEditTime: 2024-05-07 11:41:54
  * @FilePath: /speak/lib/router/index.dart
  * @Description: 路由配置
  */
@@ -16,7 +16,7 @@ final router = GoRouter(
     GoRoute(
       path: '/',
       builder: (BuildContext context, GoRouterState state) {
-        return const Index();
+        return Index();
       },
     ),
     GoRoute(
