@@ -2,17 +2,19 @@
  * @Author: panghu tompanghu@gmail.com
  * @Date: 2024-04-29 14:35:19
  * @LastEditors: panghu tompanghu@gmail.com
- * @LastEditTime: 2024-05-07 15:54:50
+ * @LastEditTime: 2024-05-07 16:40:13
  * @FilePath: /speak/lib/page/Index/index.dart
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:speak/api/index.dart';
 import 'package:speak/apiResponse/login_response.dart';
+import 'package:speak/apiResponse/toolbox_catalog_response.dart';
 import 'package:speak/apiResponse/toolbox_response.dart';
 import 'package:speak/components/CustomBottomBar/index.dart';
 import 'package:speak/utils/shared.dart';
@@ -398,14 +400,14 @@ class Toolbox extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final selectedToolboxId = useState<String>(''); // 按钮选中的状态
-
+    final toolboxDetail = useState<List<ToolboxCatalogItem>>([]); // 工具箱详情
     // 查询目录详情
     void handleToolboxDetail() async {
       // 通过目录id查询工具箱详情
       var response = await ApiService().ToolboxCatalogDetail(
         catalogueId: selectedToolboxId.value,
       );
-      print(response);
+      toolboxDetail.value = response.rows;
     }
 
     return Container(
@@ -464,6 +466,86 @@ class Toolbox extends HookWidget {
                     );
                   }).toList()),
                 ),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                      children: toolboxDetail.value.map<Widget>((item) {
+                    return GestureDetector(
+                      onTap: () => {},
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 10, top: 20),
+                        width: 141,
+                        height: 149,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 15, vertical: 17),
+                        clipBehavior: Clip.antiAlias,
+                        decoration: ShapeDecoration(
+                          // color: Color(0xFF295BFF),
+                          //颜色通过索引随机生成 蓝色 紫色 黄色 橙色
+                          color: [
+                            const Color(0xFF295BFF),
+                            const Color(0xFFCE7CFF),
+                            const Color(0xFFFFCD29),
+                            const Color(0xFFA8B2FF)
+                          ][Random().nextInt(4)],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 24,
+                              height: 24,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                      width: 24,
+                                      height: 24,
+                                      child: Image.network(
+                                        'http://192.168.0.121:8181${item.url}',
+                                        width: 28,
+                                        height: 28,
+                                      )),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              item.name,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            SizedBox(
+                              width: 107,
+                              child: Text(
+                                item.synopsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList()),
+                )
               ],
             ),
           )
