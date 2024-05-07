@@ -2,7 +2,7 @@
  * @Author: panghu tompanghu@gmail.com
  * @Date: 2024-05-06 16:13:36
  * @LastEditors: panghu tompanghu@gmail.com
- * @LastEditTime: 2024-05-07 11:42:06
+ * @LastEditTime: 2024-05-07 15:50:46
  * @FilePath: /speak/lib/api/index.dart
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -34,8 +34,11 @@ class ApiService {
 
   //查询工具箱
   // ignore: non_constant_identifier_names
-  Future<dynamic> Toolbox() async {
+  Future<dynamic> ToolboxCatalogDetail({required String catalogueId}) async {
     Response response =
-        await httpClient.get('/ai/config/list', queryParameters: {});
+        await httpClient.get('/ai/config/list', queryParameters: {
+      'catalogueId': catalogueId,
+    });
+    return response.data;
   }
 }

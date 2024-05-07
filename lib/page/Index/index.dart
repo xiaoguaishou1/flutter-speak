@@ -2,10 +2,12 @@
  * @Author: panghu tompanghu@gmail.com
  * @Date: 2024-04-29 14:35:19
  * @LastEditors: panghu tompanghu@gmail.com
- * @LastEditTime: 2024-05-07 11:43:30
+ * @LastEditTime: 2024-05-07 15:54:50
  * @FilePath: /speak/lib/page/Index/index.dart
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
+
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -217,15 +219,19 @@ class Index extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 底部导航栏选中的索引
     final selectedIndex = useState(0);
+    // 登录状态
     final loginSuccess = useState(false);
-    // 在需要使用的地方获取selectedIndex的值
-    int currentIndex = selectedIndex.value;
+    // 工具箱目录
+    final toolboxCatalog = useState<List<ToolboxListData>>([]);
 
+    // 底部导航栏点击事件
     void onItemTapped(int index) {
       selectedIndex.value = index;
     }
 
+    //  登录
     void handleLogin() async {
       try {
         LoginResponse response = await _apiService.login(
@@ -248,7 +254,7 @@ class Index extends HookWidget {
     //查询工具箱目录
     void handleToolboxCatalog() async {
       ToolboxList response = await _apiService.ToolboxCatalog();
-      print(response);
+      toolboxCatalog.value = response.data;
     }
 
     useEffect(() {
@@ -374,32 +380,94 @@ class Index extends HookWidget {
             ),
           ),
         ),
-        Container(
-            margin: const EdgeInsets.only(top: 50, left: 20),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '工具箱',
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    color: Color(0xFF000C3A),
-                    fontSize: 25,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Row(
-                  children: [],
-                )
-              ],
-            ))
+        Toolbox(toolboxCatalog: toolboxCatalog.value)
       ]),
-      floatingActionButtonLocation: FloatingActionButtonLocation
-          .centerFloat, // 或者使用 FloatingActionButtonLocation.centerFloat
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: CustomBottomBar(
-        selectedIndex: currentIndex,
+        selectedIndex: selectedIndex.value,
         onItemTapped: onItemTapped,
+      ),
+    );
+  }
+}
+
+class Toolbox extends HookWidget {
+  final List<ToolboxListData> toolboxCatalog; // 确保这是列表类型
+  const Toolbox({super.key, required this.toolboxCatalog});
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedToolboxId = useState<String>(''); // 按钮选中的状态
+
+    // 查询目录详情
+    void handleToolboxDetail() async {
+      // 通过目录id查询工具箱详情
+      var response = await ApiService().ToolboxCatalogDetail(
+        catalogueId: selectedToolboxId.value,
+      );
+      print(response);
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 50, left: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '工具箱',
+            textAlign: TextAlign.left,
+            style: TextStyle(
+              color: Color(0xFF000C3A),
+              fontSize: 25,
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          // 横向滚动视图
+          Container(
+            margin: const EdgeInsets.only(top: 20),
+            child: Column(
+              children: [
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                      children: toolboxCatalog.map<Widget>((item) {
+                    return GestureDetector(
+                      onTap: () {
+                        selectedToolboxId.value =
+                            item.catalogueId; // 假设每个工具项有'catalogueId'属性
+                        handleToolboxDetail();
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        clipBehavior: Clip.antiAlias,
+                        decoration: BoxDecoration(
+                          color: selectedToolboxId.value == item.catalogueId
+                              ? const Color(0xFF295BFF)
+                              : const Color(0xFFD9DDFF),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          item.name, // 假设每个工具项有'name'属性
+                          style: TextStyle(
+                            color: selectedToolboxId.value == item.catalogueId
+                                ? Colors.white
+                                : const Color(0xFF000C3A),
+                            fontSize: 14,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList()),
+                ),
+              ],
+            ),
+          )
+        ],
       ),
     );
   }

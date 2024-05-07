@@ -10,7 +10,7 @@ ToolboxList _$ToolboxListFromJson(Map<String, dynamic> json) => ToolboxList(
       msg: json['msg'] as String,
       code: (json['code'] as num).toInt(),
       data: (json['data'] as List<dynamic>)
-          .map((e) => Data.fromJson(e as Map<String, dynamic>))
+          .map((e) => ToolboxListData.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
 
@@ -21,7 +21,7 @@ Map<String, dynamic> _$ToolboxListToJson(ToolboxList instance) =>
       'data': instance.data,
     };
 
-Data _$DataFromJson(Map<String, dynamic> json) => Data(
+ToolboxListData _$DataFromJson(Map<String, dynamic> json) => ToolboxListData(
       createBy: json['createBy'],
       createTime: json['createTime'],
       updateBy: json['updateBy'],
@@ -32,7 +32,8 @@ Data _$DataFromJson(Map<String, dynamic> json) => Data(
       orderNum: (json['orderNum'] as num).toInt(),
     );
 
-Map<String, dynamic> _$DataToJson(Data instance) => <String, dynamic>{
+Map<String, dynamic> _$DataToJson(ToolboxListData instance) =>
+    <String, dynamic>{
       'createBy': instance.createBy,
       'createTime': instance.createTime,
       'updateBy': instance.updateBy,
