@@ -2,12 +2,13 @@
  * @Author: panghu tompanghu@gmail.com
  * @Date: 2024-05-06 15:59:50
  * @LastEditors: panghu tompanghu@gmail.com
- * @LastEditTime: 2024-05-06 18:05:38
+ * @LastEditTime: 2024-05-07 16:44:51
  * @FilePath: /speak/lib/utils/request.dart
  * @Description: 封装拦截器
  */
 import 'package:dio/dio.dart';
 import 'package:speak/utils/TokenStorage.dart';
+import 'package:speak/utils/base.dart';
 import 'package:speak/utils/shared.dart';
 
 class HttpClient {
@@ -21,7 +22,7 @@ class HttpClient {
 
   HttpClient._internal() {
     dio = Dio(BaseOptions(
-      baseUrl: 'http://192.168.0.121:8181/', // 这里替换为你的基础 URL
+      baseUrl: baseURL, // 这里替换为你的基础 URL
       connectTimeout: const Duration(seconds: 5), // 连接服务器超时时间，单位是毫秒。
       receiveTimeout: const Duration(seconds: 3), // 接收数据的最长时限，单位是毫秒。
     ));
