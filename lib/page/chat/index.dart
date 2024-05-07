@@ -2,7 +2,7 @@
  * @Author: panghu tompanghu@gmail.com
  * @Date: 2024-05-07 17:07:08
  * @LastEditors: panghu tompanghu@gmail.com
- * @LastEditTime: 2024-05-07 20:47:20
+ * @LastEditTime: 2024-05-07 21:24:46
  * @FilePath: /speak/lib/page/chat/index.dart
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -17,6 +17,28 @@ class ChatContainer extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 使用useState来模拟消息数据
+
+    final messagesList = useState<List<Message>>([
+      Message(content: '你好！', isRobot: true),
+      Message(content: '你好，有什么可以帮助你的？', isRobot: false),
+      Message(content: '请问如何使用 Flutter?', isRobot: true),
+      Message(content: '请问如何使用 Flutter?', isRobot: false),
+      Message(content: '你好，有什么可以帮助你的？', isRobot: false),
+      Message(content: '你好，有什么可以帮助你的？', isRobot: false),
+      Message(content: '你好！', isRobot: true),
+      Message(content: '你好！', isRobot: true),
+      Message(content: '你好！', isRobot: true),
+      Message(content: '你好！', isRobot: true),
+      Message(content: '你好！', isRobot: true),
+      Message(content: '你好！', isRobot: true),
+      Message(content: '你好！', isRobot: true),
+      Message(content: '你好！', isRobot: true),
+      Message(content: '你好！', isRobot: true),
+      Message(content: '你好！', isRobot: true),
+      Message(content: '你好！', isRobot: true),
+    ]);
+
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -53,29 +75,73 @@ class ChatContainer extends HookWidget {
             ),
           ],
         ),
-        body: const Stack(
-            // children: [
-            //   Positioned(
-            //       //最底部 居中
-            //       bottom: 40,
-            //       left: 25,
-            //       right: 0,
-            //       child: SendMessage())
-            // ],
+        body: Column(
+          children: [
+            Expanded(
+              child: MessageContainer(messages: messagesList.value),
             ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: const SendMessage(),
+            const SendMessage(),
+          ],
+        ),
       ),
     );
   }
 }
 
-class MessageContiner extends HookWidget {
-  const MessageContiner({super.key});
+class MessageContainer extends HookWidget {
+  final List<Message> messages;
+  const MessageContainer({super.key, required this.messages});
+
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Scaffold(
+      body: Container(
+        // padding: EdgeInsets.only(bottom: 110), // 根据需要调整底部padding的大小
+        padding: const EdgeInsets.all(8.0),
+        child: ListView.builder(
+          itemCount: messages.length,
+          itemBuilder: (context, index) {
+            final message = messages[index];
+            return Align(
+              alignment: message.isRobot
+                  ? Alignment.centerLeft
+                  : Alignment.centerRight,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (message.isRobot) ...[
+                    const CircleAvatar(child: Text('R')),
+                    const SizedBox(width: 8),
+                  ],
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10, top: 10),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color:
+                          message.isRobot ? Colors.grey[200] : Colors.blue[200],
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(message.content),
+                  ),
+                  if (!message.isRobot) ...[
+                    const SizedBox(width: 8),
+                    const CircleAvatar(child: Text('U')),
+                  ],
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
+}
+
+class Message {
+  final String content;
+  final bool isRobot;
+  Message({required this.content, required this.isRobot});
 }
 
 class SendMessage extends HookWidget {
@@ -83,9 +149,11 @@ class SendMessage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: no_leading_underscores_for_local_identifiers
     final TextEditingController _controller = useTextEditingController();
 
-    return SizedBox(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 30),
       width: MediaQuery.of(context).size.width * 0.9,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
