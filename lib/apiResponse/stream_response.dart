@@ -2,7 +2,7 @@
  * @Author: panghu tompanghu@gmail.com
  * @Date: 2024-05-08 14:36:06
  * @LastEditors: panghu tompanghu@gmail.com
- * @LastEditTime: 2024-05-09 14:19:51
+ * @LastEditTime: 2024-05-09 17:08:02
  * @FilePath: /speak/lib/apiResponse/stream_response.dart
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -59,14 +59,20 @@ class Delta {
 
 @JsonSerializable()
 class Usage {
-  final int promptTokens;
-  final int completionTokens;
-  final int totalTokens;
+  final int? promptTokens;
+  final int? completionTokens;
+  final int? totalTokens;
+  final int? prompt_tokens;
+  final int? completion_tokens;
+  final int? total_tokens;
 
   Usage(
       {required this.promptTokens,
       required this.completionTokens,
-      required this.totalTokens});
+      required this.totalTokens,
+      required this.prompt_tokens,
+      required this.completion_tokens,
+      required this.total_tokens});
 
   factory Usage.fromJson(Map<String, dynamic> json) => _$UsageFromJson(json);
 

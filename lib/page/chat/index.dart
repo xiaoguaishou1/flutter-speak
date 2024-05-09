@@ -2,7 +2,7 @@
  * @Author: panghu tompanghu@gmail.com
  * @Date: 2024-05-07 17:07:08
  * @LastEditors: panghu tompanghu@gmail.com
- * @LastEditTime: 2024-05-09 14:32:58
+ * @LastEditTime: 2024-05-09 18:13:37
  * @FilePath: /speak/lib/page/chat/index.dart
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -12,10 +12,13 @@ import 'dart:ffi';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:go_router/go_router.dart';
+import 'package:highlight/highlight_core.dart';
 import 'package:nanoid/non_secure.dart';
 import 'package:speak/apiResponse/stream_response.dart';
 import 'package:speak/utils/dioSteam.dart';
+import 'package:markdown/markdown.dart' as md;
 
 class Message {
   final String content;
@@ -31,6 +34,31 @@ class ChatContainer extends HookWidget {
   Widget build(BuildContext context) {
     // 使用useState来模拟消息数据
     final messagesList = useState<List<Message>>([]);
+    // 使用 useCallback 来定义 onSend 和 onPush 回调，确保这些函数不会在每次 ChatContainer 重新渲染时被重新创建
+    final onSend = useCallback((String message) {
+      messagesList.value = [
+        ...messagesList.value,
+        Message(content: message, isRobot: false, Id: nanoid(10)),
+      ];
+    }, [messagesList]);
+
+    final onPush = useCallback(({
+      required String content,
+      required String Id,
+    }) {
+      print('object 111');
+      final index =
+          messagesList.value.indexWhere((element) => element.Id == Id);
+      if (index != -1) {
+        messagesList.value = List<Message>.from(messagesList.value)
+          ..[index] = Message(content: content, isRobot: true, Id: Id);
+      } else {
+        messagesList.value = [
+          ...messagesList.value,
+          Message(content: content, isRobot: true, Id: Id),
+        ];
+      }
+    }, [messagesList]);
 
     return MaterialApp(
       home: Scaffold(
@@ -73,102 +101,10 @@ class ChatContainer extends HookWidget {
             Expanded(
               child: MessageContainer(messages: messagesList.value),
             ),
-            SendMessage(
-              onSend: (String message) {
-                messagesList.value = [
-                  ...messagesList.value,
-                  Message(content: message, isRobot: false, Id: nanoid(10)),
-                ];
-              },
-              onPush: ({
-                required String content,
-                required String Id,
-              }) {
-                messagesList.value = [
-                  ...messagesList.value,
-                  Message(content: content, isRobot: true, Id: Id),
-                ];
-              },
-            ),
+            SendMessage(onSend: onSend, onPush: onPush),
           ],
         ),
       ),
-    );
-  }
-}
-
-class MessageContainer extends HookWidget {
-  final List<Message> messages;
-  const MessageContainer({super.key, required this.messages});
-
-  @override
-  Widget build(BuildContext context) {
-    // 创建 ScrollController 对象
-    final ScrollController _controller = useScrollController();
-    // 使用 useEffect 来监听 messages 的长度变化，并滚动到最底部
-
-    useEffect(() {
-      void scrollToBottom() {
-        if (_controller.hasClients) {
-          _controller.animateTo(
-            _controller.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
-      }
-
-      scrollToBottom();
-      return null;
-    }, [messages.length]); // 依赖 messages 的长度，而不是整个 messages 列表
-
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 60), // 底部添加60像素的内边距
-      controller: _controller,
-      itemCount: messages.length,
-      itemBuilder: (context, index) {
-        final message = messages[index];
-        return Align(
-          alignment:
-              message.isRobot ? Alignment.centerLeft : Alignment.centerRight,
-          child: Container(
-            margin: const EdgeInsets.only(left: 10, right: 10),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (message.isRobot) ...[
-                  const CircleAvatar(child: Text('R')),
-                  const SizedBox(width: 8),
-                ],
-                Container(
-                    //最大宽度
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.7,
-                    ),
-                    margin: const EdgeInsets.only(bottom: 10, top: 10),
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color:
-                          message.isRobot ? Colors.grey[200] : Colors.blue[200],
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(message.content,
-                        style: const TextStyle(
-                          color: Color(0xFF000C3A),
-                          fontSize: 16,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w400,
-                          //文本换行
-                        ))),
-                if (!message.isRobot) ...[
-                  const SizedBox(width: 8),
-                  const CircleAvatar(child: Text('U')),
-                ],
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }
@@ -183,9 +119,9 @@ class SendMessage extends HookWidget {
     final TextEditingController _controller = useTextEditingController();
     final streamText = useState<String>('');
     void handleData(String data) {
+      print(data);
       if (data.trim() == '[DONE]') {
         print(streamText.value);
-        onPush(content: streamText.value, Id: nanoid(10));
         streamText.value = '';
         return;
       }
@@ -193,6 +129,11 @@ class SendMessage extends HookWidget {
         var jsonData = json.decode(data);
         var myModel = StreamResponse.fromJson(jsonData); // 假设使用正确的 JSON key 和结构
         streamText.value += myModel.choices[0].delta!.content!;
+        onPush(content: streamText.value, Id: myModel.id);
+
+        if (myModel.usage!.total_tokens! > 0) {
+          print(myModel.usage!.total_tokens);
+        }
       } catch (e) {
         print('Error processing data: $e');
       }
@@ -255,6 +196,7 @@ class SendMessage extends HookWidget {
                 ),
               ),
               child: TextField(
+                //
                 controller: _controller,
                 decoration: InputDecoration(
                   hintText: 'Type a message',
@@ -292,6 +234,118 @@ class SendMessage extends HookWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class MessageContainer extends HookWidget {
+  final List<Message> messages;
+  const MessageContainer({super.key, required this.messages});
+
+  @override
+  Widget build(BuildContext context) {
+    // 创建 ScrollController 对象
+    final ScrollController _controller = useScrollController();
+    // 使用 useEffect 来监听 messages 的长度变化，并滚动到最底部
+
+    useEffect(() {
+      void scrollToBottom() {
+        if (_controller.hasClients) {
+          _controller.animateTo(
+            _controller.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      }
+
+      scrollToBottom();
+      return null;
+    }, [messages.length]); // 依赖 messages 的长度，而不是整个 messages 列表
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 60), // 底部添加60像素的内边距
+      controller: _controller,
+      itemCount: messages.length,
+      itemBuilder: (context, index) {
+        final message = messages[index];
+        return Align(
+          alignment:
+              message.isRobot ? Alignment.centerLeft : Alignment.centerRight,
+          child: Container(
+            margin: const EdgeInsets.only(left: 10, right: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (message.isRobot) ...[
+                  const CircleAvatar(child: Text('R')),
+                  const SizedBox(width: 8),
+                ],
+                Container(
+                    //最大宽度
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.7,
+                    ),
+                    margin: const EdgeInsets.only(bottom: 10, top: 10),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: message.isRobot
+                          ? const Color(0xFFD9DDFF)
+                          : const Color(0xFF295BFF),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: MarkdownBody(
+                      data: message.content,
+                      styleSheet: MarkdownStyleSheet(
+                        p: TextStyle(
+                          color: !message.isRobot ? Colors.white : Colors.black,
+                          fontSize: 16,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w400,
+                        ),
+                        codeblockDecoration: BoxDecoration(
+                          color: Colors.grey[900], // 代码块背景色
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
+                      ),
+                    )),
+                if (!message.isRobot) ...[
+                  const SizedBox(width: 8),
+                  const CircleAvatar(child: Text('U')),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class CodeBlockBuilder extends MarkdownElementBuilder {
+  @override
+  Widget visitElementAfter(md.Element element, TextStyle? preferredStyle) {
+    final code = element.textContent;
+    final highlighted =
+        highlight.parse(code, language: 'javascript'); // 指定语言以正确高亮
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text.rich(
+        TextSpan(
+          style: const TextStyle(fontFamily: 'monospace'), // 设置代码字体
+          children: highlighted.nodes!.map((node) {
+            // 根据highlight.js的节点处理高亮文本
+            return TextSpan(
+              text: node.value,
+              style: const TextStyle(
+                color: Colors.red, // 根据node.className定义颜色
+                fontWeight: FontWeight.normal,
+                fontStyle: FontStyle.normal,
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
