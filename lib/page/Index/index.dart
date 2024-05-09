@@ -2,7 +2,7 @@
  * @Author: panghu tompanghu@gmail.com
  * @Date: 2024-04-29 14:35:19
  * @LastEditors: panghu tompanghu@gmail.com
- * @LastEditTime: 2024-05-07 21:14:41
+ * @LastEditTime: 2024-05-08 09:44:06
  * @FilePath: /speak/lib/page/Index/index.dart
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -235,7 +235,7 @@ class Index extends HookWidget {
       selectedIndex.value = index;
       switch (index) {
         case 0:
-          context.go('/');
+          context.go('/chat');
           break;
         default:
       }
