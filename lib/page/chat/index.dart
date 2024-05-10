@@ -2,14 +2,16 @@
  * @Author: panghu tompanghu@gmail.com
  * @Date: 2024-05-07 17:07:08
  * @LastEditors: panghu tompanghu@gmail.com
- * @LastEditTime: 2024-05-09 18:13:37
+ * @LastEditTime: 2024-05-10 11:05:57
  * @FilePath: /speak/lib/page/chat/index.dart
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 import 'dart:convert';
 import 'dart:ffi';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -117,7 +119,11 @@ class SendMessage extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final TextEditingController _controller = useTextEditingController();
+
     final streamText = useState<String>('');
+    //麦克风的状态
+    final micState = useState<bool>(false);
+
     void handleData(String data) {
       print(data);
       if (data.trim() == '[DONE]') {
@@ -139,103 +145,176 @@ class SendMessage extends HookWidget {
       }
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 30),
-      width: MediaQuery.of(context).size.width * 0.9,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Container(
-              height: 50,
-              margin: const EdgeInsets.only(right: 10),
-              clipBehavior: Clip.antiAlias,
-              decoration: ShapeDecoration(
-                color: const Color(0xFFD9DDFF),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(100),
-                ),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.mic_outlined,
-                    size: 30, color: Color(0xFF6B6C74)),
-                onPressed: () {},
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Container(
-              height: 50,
-              margin: const EdgeInsets.only(right: 10),
-              clipBehavior: Clip.antiAlias,
-              decoration: ShapeDecoration(
-                color: const Color(0xFFD9DDFF),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(100),
-                ),
-              ),
-              child: IconButton(
-                icon:
-                    const Icon(Icons.image, size: 30, color: Color(0xFF6B6C74)),
-                onPressed: () {},
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 8,
-            child: Container(
-              height: 50,
-              padding: const EdgeInsets.only(left: 10, top: 3),
-              clipBehavior: Clip.antiAlias,
-              decoration: ShapeDecoration(
-                color: const Color(0xFFD9DDFF),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-              child: TextField(
-                //
-                controller: _controller,
-                decoration: InputDecoration(
-                  hintText: 'Type a message',
-                  hintStyle: const TextStyle(
-                    color: Color(0xFF6B6C74),
-                    fontSize: 16,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w400,
+    //文本状态
+    Widget TextInput() {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 30),
+        width: MediaQuery.of(context).size.width * 0.9,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              flex: 2,
+              child: Container(
+                height: 50,
+                margin: const EdgeInsets.only(right: 10),
+                clipBehavior: Clip.antiAlias,
+                decoration: ShapeDecoration(
+                  color: const Color(0xFFD9DDFF),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(100),
                   ),
-                  border: InputBorder.none,
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.send),
-                    onPressed: () {
-                      // 处理发送按钮点击事件
-                      onSend(_controller.value.text);
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.mic_outlined,
+                      size: 30, color: Color(0xFF6B6C74)),
+                  onPressed: () {
+                    micState.value = true;
+                  },
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Container(
+                height: 50,
+                margin: const EdgeInsets.only(right: 10),
+                clipBehavior: Clip.antiAlias,
+                decoration: ShapeDecoration(
+                  color: const Color(0xFFD9DDFF),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.image,
+                      size: 30, color: Color(0xFF6B6C74)),
+                  onPressed: () {},
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 8,
+              child: Container(
+                height: 50,
+                padding: const EdgeInsets.only(left: 10, top: 3),
+                clipBehavior: Clip.antiAlias,
+                decoration: ShapeDecoration(
+                  color: const Color(0xFFD9DDFF),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                child: TextField(
+                  controller: _controller,
+                  decoration: InputDecoration(
+                    hintText: 'Type a message',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF6B6C74),
+                      fontSize: 16,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w400,
+                    ),
+                    border: InputBorder.none,
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.send),
+                      onPressed: () {
+                        // 处理发送按钮点击事件
+                        onSend(_controller.value.text);
 
-                      StreamSSE(
-                        'https://open.bigmodel.cn/api/paas/v4/chat/completions',
-                        data: {
-                          "model": "glm-4",
-                          "messages": [
-                            {"role": "user", "content": _controller.value.text}
-                          ],
-                          "temperature": 0.3,
-                          "stream": true,
-                        },
-                        onData: handleData,
-                      );
+                        StreamSSE(
+                          'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+                          data: {
+                            "model": "glm-4",
+                            "messages": [
+                              {
+                                "role": "user",
+                                "content": _controller.value.text
+                              }
+                            ],
+                            "temperature": 0.3,
+                            "stream": true,
+                          },
+                          onData: handleData,
+                        );
 
-                      _controller.clear();
+                        _controller.clear();
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    //语音状态
+    Widget MicInput() {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 30),
+        width: MediaQuery.of(context).size.width * 0.9,
+        child: Row(
+          children: [
+            Expanded(
+              flex: 8,
+              child: Container(
+                height: 50,
+                margin: const EdgeInsets.only(right: 10),
+                clipBehavior: Clip.antiAlias,
+                decoration: ShapeDecoration(
+                  color: const Color(0xFFD9DDFF),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                ),
+                child: GestureDetector(
+                    onLongPress: () {
+                      print('长按');
                     },
-                  ),
-                ),
+                    onLongPressEnd: (details) {
+                      print('长按结束');
+                    },
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                            onPressed: () {},
+                            icon: const Icon(Icons.voice_chat,
+                                size: 30, color: Color(0xFF6B6C74)))
+                      ],
+                    )),
               ),
             ),
-          ),
-        ],
-      ),
-    );
+            Expanded(
+                flex: 2,
+                child: Container(
+                    height: 50,
+                    margin: const EdgeInsets.only(right: 10),
+                    clipBehavior: Clip.antiAlias,
+                    decoration: ShapeDecoration(
+                      color: const Color(0xFFD9DDFF),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.keyboard_alt,
+                          size: 30, color: Color(0xFF6B6C74)),
+                      onPressed: () {
+                        micState.value = false;
+                        const Icon(Icons.keyboard_alt,
+                            size: 30, color: Color(0xFF6B6C74));
+                      },
+                    ))),
+          ],
+        ),
+      );
+    }
+
+    return micState.value ? MicInput() : TextInput();
   }
 }
 
@@ -335,7 +414,6 @@ class CodeBlockBuilder extends MarkdownElementBuilder {
         TextSpan(
           style: const TextStyle(fontFamily: 'monospace'), // 设置代码字体
           children: highlighted.nodes!.map((node) {
-            // 根据highlight.js的节点处理高亮文本
             return TextSpan(
               text: node.value,
               style: const TextStyle(

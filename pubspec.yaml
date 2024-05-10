@@ -44,6 +44,7 @@ dependencies:
   nanoid: ^1.0.0
   flutter_markdown: ^0.7.1
   highlight: ^0.7.0
+  flutter_sound: ^9.4.9
 
 dev_dependencies:
   flutter_test:
