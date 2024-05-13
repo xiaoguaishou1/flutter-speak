@@ -45,6 +45,7 @@ dependencies:
   flutter_markdown: ^0.7.1
   highlight: ^0.7.0
   flutter_sound: ^9.4.9
+  flutter_native_splash: ^2.4.0
 
 dev_dependencies:
   flutter_test:
