@@ -1,9 +1,30 @@
+// allprojects {
+//     repositories {
+//         google()
+//         jcenter()
+//         maven { url 'https://maven.aliyun.com/repository/public' }
+//     }
+// }
+
+buildscript {
+    repositories {
+        google()
+        jcenter()
+        maven { url 'https://maven.aliyun.com/repository/public' }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:4.1.3'
+    }
+}
+
 allprojects {
     repositories {
         google()
-        mavenCentral()
+        jcenter()
+        maven { url 'https://maven.aliyun.com/repository/public' }
     }
 }
+
 
 rootProject.buildDir = "../build"
 subprojects {
